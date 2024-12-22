@@ -8,15 +8,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Dados em memória (substituíveis por um banco de dados futuramente)
+// Dados em memória (substituir por banco de dados futuramente)
 let configurations = [];
 
-// Rota principal para indicar que o backend está ativo
-app.get("/", (req, res) => {
-  res.send("Ratoeira Ads Backend is running!");
-});
-
-// Rota para listar configurações
+// Rota para listar todas as configurações
 app.get("/api/configurations", (req, res) => {
   res.json(configurations);
 });
@@ -56,24 +51,21 @@ app.get("/api/generate-script/:id", (req, res) => {
     return res.status(404).json({ message: "Configuração não encontrada!" });
   }
 
-  const script = `
-    <script>
-      let visits = localStorage.getItem("${config.productName}-visits") || 0;
-      visits++;
-      localStorage.setItem("${config.productName}-visits", visits);
+  const script = `<script>
+    let visits = localStorage.getItem("${config.productName}-visits") || 0;
+    visits++;
+    localStorage.setItem("${config.productName}-visits", visits);
 
-      if (visits > ${config.maxVisits}) {
-        alert("Número máximo de visitas atingido!");
-      } else {
-        window.location.href = "${config.redirectURL}";
-      }
-    </script>
-  `;
+    if (visits > ${config.maxVisits}) {
+      alert("Número máximo de visitas atingido!");
+    } else {
+      window.location.href = "${config.redirectURL}";
+    }
+  </script>`;
 
   res.type("text/plain").send(script);
 });
 
-// Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
