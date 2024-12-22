@@ -11,6 +11,11 @@ app.use(bodyParser.json());
 // Dados em memória (substituíveis por um banco de dados futuramente)
 let configurations = [];
 
+// Rota principal para indicar que o backend está ativo
+app.get("/", (req, res) => {
+  res.send("Ratoeira Ads Backend is running!");
+});
+
 // Rota para listar configurações
 app.get("/api/configurations", (req, res) => {
   res.json(configurations);
@@ -68,6 +73,7 @@ app.get("/api/generate-script/:id", (req, res) => {
   res.type("text/plain").send(script);
 });
 
+// Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
