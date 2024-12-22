@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const axios = require("axios");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +11,21 @@ app.use(bodyParser.json());
 
 // Dados em memória (substituir por banco de dados futuramente)
 let configurations = [];
+
+// Função para enviar notificações para o Telegram
+function sendTelegramNotification(message) {
+  const TELEGRAM_BOT_TOKEN = "SEU_BOT_TOKEN_AQUI"; // Substitua pelo token do bot
+  const TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI";    // Substitua pelo ID do chat
+
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+  return axios.post(url, {
+    chat_id: TELEGRAM_CHAT_ID,
+    text: message,
+  })
+  .then(() => console.log("Notificação enviada para o Telegram"))
+  .catch((error) => console.error("Erro ao enviar mensagem para o Telegram:", error.response?.data || error.message));
+}
 
 // Rota para listar todas as configurações
 app.get("/api/configurations", (req, res) => {
@@ -34,13 +50,27 @@ app.post("/api/configurations", (req, res) => {
   };
 
   configurations.push(newConfig);
+
+  // Envia notificação para o Telegram
+  sendTelegramNotification(`Nova configuração criada: \n\n${JSON.stringify(newConfig, null, 2)}`);
+
   res.status(201).json(newConfig);
 });
 
 // Rota para excluir uma configuração
 app.delete("/api/configurations/:id", (req, res) => {
   const configId = parseInt(req.params.id);
+  const deletedConfig = configurations.find((config) => config.id === configId);
+
+  if (!deletedConfig) {
+    return res.status(404).json({ message: "Configuração não encontrada!" });
+  }
+
   configurations = configurations.filter((config) => config.id !== configId);
+
+  // Envia notificação para o Telegram
+  sendTelegramNotification(`Configuração excluída: \n\n${JSON.stringify(deletedConfig, null, 2)}`);
+
   res.json({ message: "Configuração excluída com sucesso!" });
 });
 
